@@ -5,6 +5,8 @@ import thread
 import os
 import sys
 import requests
+import webbrowser
+new = 2
 def contentType(arq):
     tipo_arq = arq.split(".")
     if tipo_arq[-1] == "html":
@@ -58,17 +60,18 @@ while True:
                     file = open(os.path.realpath(os.path.dirname(__file__))+"diretorio.html", 'wr')
                     caminhos = []
                     caminhos = [os.path.join(nome) for nome in os.listdir(pastadest)]
-                    
-                    con.send("HTTP/1.1 200 OK\nContent-Type: Text\n\n")
                     i = 0
                     while(i<len(caminhos)):
-                        variavel_arq = "<LI><A HREF=" + '"'+pastadest +'"' + ">" + caminhos[i] + "</A>"
+                        variavel_arq = "<LI><A HREF=" + '"'+pastadest +caminhos[i]+'"' + ">" + caminhos[i] + "</A>"
                         caminhos[i] = variavel_arq + '\n'
                         file.write(caminhos[i])
 
                         #caminhos[i] = "<br><a href="+pasta+":"+str(porta)+"/"+caminhos[i]+">"+"</a>"
                         i=i+1
                     a = ''.join(caminhos)
+                    url = "file:///home/joaocaetano/Documentos/servidor/servidordiretorio.html"
+                    webbrowser.open(url,new=new)
+                    con.send("HTTP/1.1 200 OK\nContent-Type: text/html\n\n")
                     con.send(a) #envio agora o arquivo
                     con.close()
                     #con.send(os.listdir(os.path.realpath(os.path.dirname(__file__))))
