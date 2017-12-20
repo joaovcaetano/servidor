@@ -23,19 +23,21 @@ def contentType(arq):
         return "text/css"
     elif tipo_arq[-1] == "pdf":
         return "text/pdf"
+def printArquivo(lista):
+    for i in range(0,len(lista)):
+        lista[i] = "<br>"+lista[i]
+    return lista
         
 HOST = ''              # Endereco IP do Servidor
 try:
     pasta = sys.argv[1]
     porta = int(sys.argv[2])
 except:
-    print "Falta argumentos para o servidor"
     sys.exit(0)
 serv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 origem = (HOST, porta)
 serv_socket.bind(origem)
 serv_socket.listen(1) #servidor escutando na porta 7777
-
 while True:
     con, client = serv_socket.accept()
     pid = os.fork()
@@ -45,24 +47,31 @@ while True:
         if not msg: break
         msg = msg.split(" ")
         get = msg[0]
+        print "olar", msg[1]
         arquivo_ou_pasta = msg[1]
+        print "xd", os.path.realpath(os.path.dirname(__file__))
+        pastadest = os.path.realpath(os.path.dirname(__file__)) + msg[1]
+        print pastadest
         if(get == 'GET'):
             try:
                 if msg[1] == '/':
-                    arquivo = msg[1].split("/")
-                    arquivo_caminho = arquivo[len(arquivo)-1]
-                    file=open(os.path.realpath(os.path.dirname(__file__))+arquivo_caminho,'r')
-                    flag =file.read()
-                    response_headers = {
-                    'Content-Type': 'html; encoding=utf8',
-                    'Content-Length': len(flag),
-                    'Connection': 'close',
-                    }
-                    response_headers_raw = ''.join('%s: %s\n' % (i, j) for i, j in response_headers.iteritems())
-                    response_proto = '\nHTTP/1.1'
-                    response_status = 200
-                    response_status_text = ' OK'
-                    con.send('%s %s %s'%(response_proto,response_status,response_status_text)+'\n'+response_headers_raw+'\r\n'+flag)
+                    file = open(os.path.realpath(os.path.dirname(__file__))+"diretorio.html", 'wr')
+                    caminhos = []
+                    caminhos = [os.path.join(nome) for nome in os.listdir(pastadest)]
+                    
+                    con.send("HTTP/1.1 200 OK\nContent-Type: Text\n\n")
+                    i = 0
+                    while(i<len(caminhos)):
+                        variavel_arq = "<LI><A HREF=" + '"'+pastadest +'"' + ">" + caminhos[i] + "</A>"
+                        caminhos[i] = variavel_arq + '\n'
+                        file.write(caminhos[i])
+
+                        #caminhos[i] = "<br><a href="+pasta+":"+str(porta)+"/"+caminhos[i]+">"+"</a>"
+                        i=i+1
+                    a = ''.join(caminhos)
+                    con.send(a) #envio agora o arquivo
+                    con.close()
+                    #con.send(os.listdir(os.path.realpath(os.path.dirname(__file__))))
                 else:
                     file=open(os.path.realpath(os.path.dirname(__file__))+msg[1],'r')
                     flag =file.read()
